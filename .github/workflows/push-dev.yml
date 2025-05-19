@@ -1,0 +1,55 @@
+name: Build and push "dev" images
+
+on: 
+  workflow_dispatch:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    name: Build and push
+    if: "!contains(github.event.head_commit.message, 'Automated update') && !contains(github.event.head_commit.message, 'CI ignore')"
+    strategy:
+      matrix:
+        page: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        page-total: [11]
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Free more space
+      id: free_space 
+      run: |
+        set -e
+        # Ensure enough space is available for build
+        sudo apt-get autoremove -y
+        sudo apt-get clean -y
+        sudo rm -rf /usr/share/dotnet
+
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@v1
+
+    - name: Azure CLI login
+      id: az_login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZ_ACR_CREDS }}
+
+  image-info:
+    name: Trigger info extraction
+    if: "!contains(github.event.head_commit.message, 'Automated update') && !contains(github.event.head_commit.message, 'CI ignore')"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      id: checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.ref }}
+
+    - name: Trigger image info file generation
+      uses: devcontainers/images/.github/workflows/version-history.yaml
+      with:
+        release: "$GIT_BRANCH"
+        cg: "true"
+        push: "true"
+        overwrite: "true"
+      secrets: inherit
