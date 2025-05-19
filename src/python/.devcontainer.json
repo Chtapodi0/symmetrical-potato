@@ -1,0 +1,21 @@
+{
+    "build": {
+        "dockerfile": "./Dockerfile",
+        "context": ".",
+        "args": {
+            "VARIANT": "3.10"
+        }
+    },
+    "features": { // TODO: Change to array syntax
+        "devcontainers/features/common@v0.0.1": {
+            "version": "latest"
+        },
+        "devcontainers/features/python@v0.0.1": {
+            "version": "none",
+            "installPath": "/usr/local"
+        },
+        "devcontainers/features/node@v0.0.1": {
+            "version": "none"
+        }
+    }
+}
