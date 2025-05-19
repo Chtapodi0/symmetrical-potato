@@ -1,0 +1,37 @@
+name: Build and push "dev" images
+
+on: 
+  workflow_dispatch:
+  schedule:
+    - cron: '0 14 * * MON'
+
+jobs:
+  build-and-push:
+    name: Build and push
+    # if: "github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'Automated update') && !contains(github.event.head_commit.message, 'CI ignore')"
+    strategy:
+      matrix:
+        page: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        page-total: [11]
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+    - name: Free more space
+      id: free_space 
+      run: |
+        set -e
+        # Ensure enough space is available for build
+        sudo apt-get autoremove -y
+        sudo apt-get clean -y
+        sudo rm -rf /usr/share/dotnet
+
+  image-info:
+    name: Trigger info extraction
+    needs: [build-and-push]
+    uses: devcontainers/images/.github/workflows/version-history.yml@samruddhikhandale/push-test
+    with:
+      release: "${{ github.ref }}"
+      cg: "true"
+      push: "true"
+      overwrite: "true"
+    secrets: inherit
